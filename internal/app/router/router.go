@@ -3,28 +3,20 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/zibianqu/eino_study/internal/app/handler"
-	"github.com/zibianqu/eino_study/internal/app/repository"
 	"github.com/zibianqu/eino_study/internal/app/service"
-	"github.com/zibianqu/eino_study/internal/pkg/database"
 )
 
-func SetupRouter() *gin.Engine {
+// SetupRouter sets up the Gin router with all routes
+func SetupRouter(services *service.ServiceContainer) *gin.Engine {
 	r := gin.Default()
 
-	// Initialize repositories
-	db := database.GetDB()
-	docRepo := repository.NewDocumentRepository(db)
-	chunkRepo := repository.NewChunkRepository(db)
-	entityRepo := repository.NewEntityRepository(db)
-
-	// Initialize services
-	docService := service.NewDocumentService(docRepo, chunkRepo, entityRepo)
-	ragService := service.NewRAGService(chunkRepo, docRepo)
+	// Add CORS middleware if needed
+	r.Use(corsMiddleware())
 
 	// Initialize handlers
 	healthHandler := handler.NewHealthHandler()
-	docHandler := handler.NewDocumentHandler(docService)
-	queryHandler := handler.NewQueryHandler(ragService)
+	docHandler := handler.NewDocumentHandler(services.DocumentService)
+	queryHandler := handler.NewQueryHandler(services.RAGService)
 
 	// API v1 routes
 	v1 := r.Group("/api/v1")
@@ -47,4 +39,21 @@ func SetupRouter() *gin.Engine {
 	}
 
 	return r
+}
+
+// corsMiddleware adds CORS headers
+func corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
