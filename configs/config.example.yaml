@@ -1,0 +1,54 @@
+server:
+  host: 0.0.0.0
+  port: 8080
+  mode: debug  # debug, release, test
+  read_timeout: 60s
+  write_timeout: 60s
+
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: eino_study
+  sslmode: disable
+  max_idle_conns: 10
+  max_open_conns: 100
+  conn_max_lifetime: 3600s
+
+vectordb:
+  type: pgvector  # pgvector, milvus, qdrant
+  dimension: 1536  # embedding dimension
+
+eino:
+  llm:
+    provider: openai  # openai, azure, anthropic
+    api_key: your-api-key-here
+    base_url: https://api.openai.com/v1
+    model: gpt-4
+    temperature: 0.7
+    max_tokens: 2000
+  
+  embedding:
+    provider: openai
+    api_key: your-api-key-here
+    model: text-embedding-3-small
+    dimension: 1536
+  
+  splitter:
+    chunk_size: 1000
+    chunk_overlap: 200
+  
+  retriever:
+    top_k: 5
+    similarity_threshold: 0.7
+
+log:
+  level: info  # debug, info, warn, error
+  encoding: json  # json, console
+  output_paths:
+    - stdout
+    - logs/app.log
+  error_output_paths:
+    - stderr
+    - logs/error.log

@@ -1,0 +1,14 @@
+server:
+  mode: debug
+  port: 8080
+
+database:
+  host: localhost
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: eino_study
+
+log:
+  level: debug
+  encoding: console
