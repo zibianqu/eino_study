@@ -1,12 +1,13 @@
 package service
 
 import (
+	"context"
 	"fmt"
 	"path/filepath"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/zibianqu/eino_study/internal/app/repository"
+	"github.com/zibianqu/eino_study/internal/eino/graph"
 	"github.com/zibianqu/eino_study/internal/model"
 	"github.com/zibianqu/eino_study/internal/pkg/utils"
 	"gorm.io/gorm"
@@ -21,20 +22,23 @@ type DocumentService interface {
 }
 
 type documentService struct {
-	docRepo   repository.DocumentRepository
-	chunkRepo repository.ChunkRepository
-	entityRepo repository.EntityRepository
+	docRepo          repository.DocumentRepository
+	chunkRepo        repository.ChunkRepository
+	entityRepo       repository.EntityRepository
+	docProcessor     *graph.DocumentProcessor
 }
 
 func NewDocumentService(
 	docRepo repository.DocumentRepository,
 	chunkRepo repository.ChunkRepository,
 	entityRepo repository.EntityRepository,
+	docProcessor *graph.DocumentProcessor,
 ) DocumentService {
 	return &documentService{
-		docRepo:   docRepo,
-		chunkRepo: chunkRepo,
-		entityRepo: entityRepo,
+		docRepo:      docRepo,
+		chunkRepo:    chunkRepo,
+		entityRepo:   entityRepo,
+		docProcessor: docProcessor,
 	}
 }
 
@@ -129,12 +133,27 @@ func (s *documentService) DeleteDocument(docID string) error {
 }
 
 func (s *documentService) ProcessDocument(docID string) error {
-	// TODO: Implement document processing with Eino
-	// 1. Load document
-	// 2. Split into chunks
-	// 3. Generate embeddings
-	// 4. Store in vector database
-	// 5. Extract entities
-	// 6. Update sync state
-	return fmt.Errorf("not implemented yet")
+	// Get document
+	doc, err := s.docRepo.GetByID(docID)
+	if err != nil {
+		return fmt.Errorf("failed to get document: %w", err)
+	}
+
+	// Delete existing chunks for this document
+	if err := s.chunkRepo.DeleteByDocID(docID); err != nil {
+		return fmt.Errorf("failed to delete existing chunks: %w", err)
+	}
+
+	// Process document using Eino pipeline
+	ctx := context.Background()
+	if err := s.docProcessor.Process(ctx, docID, doc.FilePath); err != nil {
+		return fmt.Errorf("failed to process document: %w", err)
+	}
+
+	// Update sync state
+	if err := s.docRepo.UpdateSyncState(docID, 1, 0); err != nil {
+		return fmt.Errorf("failed to update sync state: %w", err)
+	}
+
+	return nil
 }
