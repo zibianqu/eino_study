@@ -12,6 +12,7 @@ var GlobalConfig *Config
 type Config struct {
 	Server   ServerConfig   `mapstructure:"server"`
 	Database DatabaseConfig `mapstructure:"database"`
+	Neo4j    Neo4jConfig    `mapstructure:"neo4j"`
 	VectorDB VectorDBConfig `mapstructure:"vectordb"`
 	Eino     EinoConfig     `mapstructure:"eino"`
 	Log      LogConfig      `mapstructure:"log"`
@@ -35,6 +36,16 @@ type DatabaseConfig struct {
 	MaxIdleConns    int           `mapstructure:"max_idle_conns"`
 	MaxOpenConns    int           `mapstructure:"max_open_conns"`
 	ConnMaxLifetime time.Duration `mapstructure:"conn_max_lifetime"`
+}
+
+// Neo4jConfig represents Neo4j database configuration
+type Neo4jConfig struct {
+	URI         string `mapstructure:"uri"`           // Neo4j connection URI (e.g., bolt://localhost:7687)
+	Username    string `mapstructure:"username"`      // Neo4j username
+	Password    string `mapstructure:"password"`      // Neo4j password
+	MaxPoolSize int    `mapstructure:"max_pool_size"` // Maximum connection pool size
+	Encrypted   bool   `mapstructure:"encrypted"`     // Whether to use encrypted connection
+	Database    string `mapstructure:"database"`      // Database name (default: neo4j)
 }
 
 type VectorDBConfig struct {
@@ -71,7 +82,7 @@ type SplitterConfig struct {
 }
 
 type RetrieverConfig struct {
-	TopK               int     `mapstructure:"top_k"`
+	TopK                int     `mapstructure:"top_k"`
 	SimilarityThreshold float64 `mapstructure:"similarity_threshold"`
 }
 
