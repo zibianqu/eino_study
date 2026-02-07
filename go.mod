@@ -3,7 +3,7 @@ module github.com/zibianqu/eino_study
 go 1.21
 
 require (
-	github.com/cloudwego/eino v0.3.8
+	github.com/cloudwego/eino v0.7.27
 	github.com/cloudwego/eino-ext/components/embedding/openai v0.1.8
 	github.com/cloudwego/eino-ext/components/model/openai v0.1.8
 	github.com/gin-gonic/gin v1.10.0
